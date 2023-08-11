@@ -24,6 +24,11 @@ git clone --recursive git@github.com:gsistelos/raycast.git
 
 See GLFW dependencies: https://www.glfw.org/docs/latest/compile.html#compile_deps
 
+Install wget:
+```sh
+sudo apt install -y wget
+```
+
 Run `make`
 
 ### Windows:
