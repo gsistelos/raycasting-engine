@@ -20,22 +20,20 @@ Clone repository recursively to include glfw repository:
 git clone --recursive git@github.com:gsistelos/raycast.git
 ```
 
-### Linux:
+### Linux and macOS:
 
 See GLFW dependencies: https://www.glfw.org/docs/latest/compile.html#compile_deps
 
-Install wget:
 ```sh
-sudo apt install -y wget
+cmake -B build
+cmake --build build
 ```
-
-Run `make`
 
 ### Windows:
 
 Download the raycast.rar from the repository, it includes the Windows binaries, maps and textures
 
-Or install mingw64 and compile with `make windows`
+For now, there is no way to compile on Windows using cmake or make
 
 ## Usage
 

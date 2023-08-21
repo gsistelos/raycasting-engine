@@ -2,10 +2,14 @@ cmake_minimum_required(VERSION 3.15)
 
 project(raycast)
 
+set(CMAKE_CXX_COMPILER g++)
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Werror -std=c++11 -O3")
+
+include_directories(includes)
+
 find_package(OpenGL REQUIRED)
 
 include(FetchContent)
-include_directories(includes)
 
 FetchContent_Declare(
     stb_image
@@ -32,6 +36,16 @@ if(NOT glfw_POPULATED)
     add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
 endif()
 
-add_executable(raycast srcs/Game.cpp srcs/Image.cpp srcs/keyCallback.cpp srcs/main.cpp srcs/Map.cpp srcs/Player.cpp srcs/Sprite.cpp)
+add_executable(raycast
+    srcs/Game.cpp
+    srcs/Image.cpp
+    srcs/keyCallback.cpp
+    srcs/main.cpp
+    srcs/Map.cpp
+    srcs/Player.cpp
+    srcs/Sprite.cpp
+)
+
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR})
 
 target_link_libraries(raycast PRIVATE stb glfw OpenGL::GL)
