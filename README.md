@@ -15,9 +15,9 @@ In contrast to the traditional approach of assigning wall textures based on wall
 
 ## Compilation
 
-Clone repository recursively to include glfw repository:
+Clone repository:
 ```sh
-git clone --recursive git@github.com:gsistelos/raycast.git
+git clone git@github.com:gsistelos/raycast.git
 ```
 
 ### Linux and macOS:
