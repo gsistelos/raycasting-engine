@@ -3,7 +3,7 @@ C textures/wood.png
 
 1 textures/bluestone.png
 
-18 9 textures/barrel.png
+18 9 sprites/barrel.png
 
 2 textures/colorstone.png
 
@@ -12,7 +12,7 @@ C textures/wood.png
 
 4 textures/greystone.png
 
-18 10 textures/greenlight.png
+18 10 sprites/greenlight.png
 
 5 textures/mossy.png
 
@@ -22,7 +22,7 @@ C textures/wood.png
 
 8 textures/wood.png
 
-18 11 textures/pillar.png
+18 11 sprites/pillar.png
 
 MAP
 111111111111111111111116666611111111

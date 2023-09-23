@@ -1,13 +1,13 @@
-F textures/barrel.png
-C textures/barrel.png
+F sprites/barrel.png
+C sprites/barrel.png
 
-1 textures/barrel.png
-2 textures/barrel.png
-3 textures/barrel.png
-4 textures/barrel.png
-5 textures/barrel.png
-6 textures/barrel.png
-7 textures/barrel.png
+1 sprites/barrel.png
+2 sprites/barrel.png
+3 sprites/barrel.png
+4 sprites/barrel.png
+5 sprites/barrel.png
+6 sprites/barrel.png
+7 sprites/barrel.png
 
 MAP
  112222222211

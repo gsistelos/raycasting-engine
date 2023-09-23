@@ -1,5 +1,6 @@
 build
 raycast
+stb_image.h
 
 # Prerequisites
 *.d
