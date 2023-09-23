@@ -15,9 +15,9 @@ In contrast to the traditional approach of assigning wall textures based on wall
 
 ## Compilation
 
-Clone repository:
+Clone repository recursively:
 ```sh
-git clone git@github.com:gsistelos/raycast.git
+git clone --recursive git@github.com:gsistelos/raycast.git
 ```
 
 ### Linux and macOS:
@@ -31,9 +31,12 @@ cmake --build build
 
 ### Windows:
 
-Download the raycast.rar from the repository, it includes the Windows binaries, maps and textures
+Dependencies: [mingw64](https://www.mingw-w64.org/), [GLFW](https://www.glfw.org/docs/latest/compile.html#compile_deps)
 
-For now, there is no way to compile on Windows using cmake or make
+You can compile on WSL or with mingw64 on Windows:
+```sh
+make
+```
 
 ## Usage
 
