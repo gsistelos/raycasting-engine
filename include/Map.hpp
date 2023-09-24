@@ -8,12 +8,10 @@ class Map {
    public:
     std::vector<std::vector<char>> grid;
 
-    Map(void);
     Map(const std::string& filename);
     ~Map();
 
     void validate(void);
-    void load(const std::string& filename);
 
     class FailedToOpenTheMap : public std::exception {
        public:
@@ -24,6 +22,9 @@ class Map {
        public:
         const char* what() const throw();
     };
+
+   private:
+    void validateOnlyZeroLine(size_t y);
 };
 
 #endif /* MAP_HPP */

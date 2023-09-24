@@ -15,7 +15,7 @@ void keyCallback(GLFWwindow* window, int32_t key, int32_t scancode, int32_t acti
                 } else {
                     game.gameState = &Game::update;
                     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-                    glfwSetCursorPos(window, game.windowWidth / 2.0, game.windowHeight / 2.0);
+                    glfwSetCursorPos(window, game.window_width / 2.0, game.window_height / 2.0);
                     game.time = glfwGetTime();
                 }
                 break;
@@ -23,42 +23,42 @@ void keyCallback(GLFWwindow* window, int32_t key, int32_t scancode, int32_t acti
                 exit(0);
                 break;
             case GLFW_KEY_W:
-                game.player.walkDir++;
+                game.player->walk_dir++;
                 break;
             case GLFW_KEY_S:
-                game.player.walkDir--;
+                game.player->walk_dir--;
                 break;
             case GLFW_KEY_A:
-                game.player.sideDir--;
+                game.player->side_dir--;
                 break;
             case GLFW_KEY_D:
-                game.player.sideDir++;
+                game.player->side_dir++;
                 break;
             case GLFW_KEY_LEFT:
-                game.player.rotDir++;
+                game.player->rot_dir++;
                 break;
             case GLFW_KEY_RIGHT:
-                game.player.rotDir--;
+                game.player->rot_dir--;
         }
     } else if (action == GLFW_RELEASE) {
         switch (key) {
             case GLFW_KEY_W:
-                game.player.walkDir--;
+                game.player->walk_dir--;
                 break;
             case GLFW_KEY_S:
-                game.player.walkDir++;
+                game.player->walk_dir++;
                 break;
             case GLFW_KEY_A:
-                game.player.sideDir++;
+                game.player->side_dir++;
                 break;
             case GLFW_KEY_D:
-                game.player.sideDir--;
+                game.player->side_dir--;
                 break;
             case GLFW_KEY_LEFT:
-                game.player.rotDir--;
+                game.player->rot_dir--;
                 break;
             case GLFW_KEY_RIGHT:
-                game.player.rotDir++;
+                game.player->rot_dir++;
         }
     }
 }

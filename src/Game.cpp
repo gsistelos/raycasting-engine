@@ -7,29 +7,32 @@
 
 void keyCallback(GLFWwindow* window, int32_t key, int32_t scancode, int32_t action, int32_t mods);
 
-Game::Game(void) : windowWidth(720), windowHeight(480), player(deltaTime, map) {
+Game::Game(void) : window_width(720), window_height(480), map(nullptr), player(nullptr) {
 }
 
 Game::~Game() {
     glfwTerminate();
+
+    delete map;
+    delete player;
 }
 
 void Game::init(const std::string& filename) {
     loadTexturesAndSprites(filename);
 
-    map.load(filename);
-    player.load();
+    map = new Map(filename);
+    player = new Player(*map);
 
     if (glfwInit() == GLFW_FALSE)
         throw Game::FailedToInitGame();
 
-    window = glfwCreateWindow(windowWidth, windowHeight, "Raycast", nullptr, nullptr);
+    window = glfwCreateWindow(window_width, window_height, "Raycast", nullptr, nullptr);
     if (window == nullptr)
         throw Game::FailedToInitGame();
 
     glfwMakeContextCurrent(window);
-    glOrtho(0, windowWidth, windowHeight, 0, -1, 1);
-    glfwSetWindowSizeLimits(window, windowWidth, windowHeight, windowWidth, windowHeight);
+    glOrtho(0, window_width, window_height, 0, -1, 1);
+    glfwSetWindowSizeLimits(window, window_width, window_height, window_width, window_height);
     glfwSetKeyCallback(window, keyCallback);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -40,12 +43,12 @@ void Game::init(const std::string& filename) {
 }
 
 void Game::loadTexturesAndSprites(const std::string& filename) {
-    std::ifstream mapFile(filename);
-    if (mapFile.is_open() == false)
+    std::ifstream file(filename);
+    if (!file.is_open())
         throw Game::CouldntOpenMap();
 
     std::string line;
-    while (std::getline(mapFile, line, '\n')) {
+    while (std::getline(file, line, '\n')) {
         if (line.empty())
             continue;
 
@@ -63,7 +66,7 @@ void Game::loadTexturesAndSprites(const std::string& filename) {
             int32_t pos[2];
             for (int32_t ipos = 0; ipos < 2; ipos++) {
                 size_t end = line.find(' ');
-                if (end == std::string::npos || end > 3)
+                if (end > 3)
                     throw Game::InvalidContent();
 
                 for (size_t i = 0; i < end; i++) {
@@ -71,134 +74,139 @@ void Game::loadTexturesAndSprites(const std::string& filename) {
                         throw Game::InvalidContent();
                 }
 
-                pos[ipos] = std::atoi(line.substr(0, end).c_str());
+                pos[ipos] = std::stof(line.substr(0, end));
 
                 line.erase(0, end + 1);
             }
 
-            sprites.push_back(Sprite(pos[0], pos[1], line.substr()));
+            sprites.push_back(Sprite(line.substr(), pos[0], pos[1]));
         }
     }
 
-    mapFile.close();
+    file.close();
 
     // Vectors for sprite rendering calculations
 
-    distBuffer.resize(windowWidth);
-    spriteOrder.resize(sprites.size());
-    spriteDistance.resize(sprites.size());
+    dist_buffer.resize(window_width);
+    sprite_order.resize(sprites.size());
+    sprite_distance.resize(sprites.size());
 }
 
 void Game::renderWalls(void) {
-    for (int32_t x = 0; x < windowWidth; x++) {
+    for (int32_t x = 0; x < window_width; x++) {
         // Ray direction in current iteration
 
-        float cameraX = 2 * x / float(windowWidth) - 1;
+        float camera_x = 2 * x / float(window_width) - 1;
 
-        float rayDirX = player.dirX + player.planeX * cameraX;
-        float rayDirY = player.dirY + player.planeY * cameraX;
+        float ray_dir_x = player->dir_x + player->plane_x * camera_x;
+        float ray_dir_y = player->dir_y + player->plane_y * camera_x;
 
-        // Reset mapX and mapY each iteration
+        // Reset map_x and map_y each iteration
 
-        int32_t mapX = player.posX;
-        int32_t mapY = player.posY;
+        int32_t map_x = player->pos_x;
+        int32_t map_y = player->pos_y;
 
         // Distance for each step
 
-        float deltaDistX = (rayDirX == 0) ? 1e30 : std::abs(1 / rayDirX);
-        float deltaDistY = (rayDirY == 0) ? 1e30 : std::abs(1 / rayDirY);
+        float delta_dist_x = (ray_dir_x == 0) ? 1e30 : std::abs(1 / ray_dir_x);
+        float delta_dist_y = (ray_dir_y == 0) ? 1e30 : std::abs(1 / ray_dir_y);
 
         // Closest interception distance and which direction to step
 
-        float sideDistX, sideDistY;
-        int32_t stepX, stepY;
-        if (rayDirX < 0) {
-            stepX = -1;
-            sideDistX = (player.posX - mapX) * deltaDistX;
+        int32_t step_x, step_y;
+        float side_dist_x, side_dist_y;
+
+        if (ray_dir_x < 0) {
+            step_x = -1;
+            side_dist_x = (player->pos_x - map_x) * delta_dist_x;
         } else {
-            stepX = 1;
-            sideDistX = (mapX + 1.0f - player.posX) * deltaDistX;
+            step_x = 1;
+            side_dist_x = (map_x + 1.0f - player->pos_x) * delta_dist_x;
         }
-        if (rayDirY < 0) {
-            stepY = -1;
-            sideDistY = (player.posY - mapY) * deltaDistY;
+
+        if (ray_dir_y < 0) {
+            step_y = -1;
+            side_dist_y = (player->pos_y - map_y) * delta_dist_y;
         } else {
-            stepY = 1;
-            sideDistY = (mapY + 1.0f - player.posY) * deltaDistY;
+            step_y = 1;
+            side_dist_y = (map_y + 1.0f - player->pos_y) * delta_dist_y;
         }
 
         // Step until find a wall
 
         bool side;
-        bool hit = 0;
-        while (hit == 0) {
-            if (sideDistX < sideDistY) {
-                sideDistX += deltaDistX;
-                mapX += stepX;
+
+        while (1) {
+            if (side_dist_x < side_dist_y) {
+                side_dist_x += delta_dist_x;
+                map_x += step_x;
                 side = 0;
             } else {
-                sideDistY += deltaDistY;
-                mapY += stepY;
+                side_dist_y += delta_dist_y;
+                map_y += step_y;
                 side = 1;
             }
 
-            if (map.grid[mapY][mapX] != '0')
-                hit = 1;
+            if (map->grid[map_y][map_x] != '0')
+                break;
         }
 
         // Store the hit distance
 
-        if (side == 0)
-            distBuffer[x] = (sideDistX - deltaDistX);
+        if (side)
+            dist_buffer[x] = (side_dist_y - delta_dist_y);
         else
-            distBuffer[x] = (sideDistY - deltaDistY);
+            dist_buffer[x] = (side_dist_x - delta_dist_x);
 
-        // Draw information based on distance
+        // Information based on distance
 
-        int32_t lineHeight = windowHeight / distBuffer[x];
+        int32_t line_height = window_height / dist_buffer[x];
 
-        int32_t drawStart = windowHeight / 2 - lineHeight / 2;
-        if (drawStart < 0)
-            drawStart = 0;
+        int32_t draw_start = window_height / 2 - line_height / 2;
+        if (draw_start < 0)
+            draw_start = 0;
 
-        int32_t drawEnd = drawStart + lineHeight;
-        if (drawEnd > windowHeight)
-            drawEnd = windowHeight;
+        int32_t draw_end = draw_start + line_height;
+        if (draw_end > window_height)
+            draw_end = window_height;
 
         // Position where the wall was hit
 
-        float wallX;
-        if (side == 0)
-            wallX = player.posY + distBuffer[x] * rayDirY;
+        float wall_x;
+
+        if (side)
+            wall_x = player->pos_x + dist_buffer[x] * ray_dir_x;
         else
-            wallX = player.posX + distBuffer[x] * rayDirX;
-        wallX -= (int32_t)wallX;
+            wall_x = player->pos_y + dist_buffer[x] * ray_dir_y;
+
+        wall_x -= (int32_t)wall_x;
 
         // Wall texture
 
-        Image& texture = textures[map.grid[mapY][mapX]];
+        Image* texture = &textures[map->grid[map_y][map_x]];
 
-        // Convert the wallX position into texX position
+        // Convert the wall_x position into tex_x position
 
-        int32_t texX = wallX * texture.getWidth();
-        if (side == 0 && rayDirX > 0)
-            texX = texture.getWidth() - texX - 1;
-        if (side == 1 && rayDirY < 0)
-            texX = texture.getWidth() - texX - 1;
+        int32_t tex_x = wall_x * texture->getWidth();
+        if (!side && ray_dir_x > 0)
+            tex_x = texture->getWidth() - tex_x - 1;
+        if (side && ray_dir_y < 0)
+            tex_x = texture->getWidth() - tex_x - 1;
 
-        // Start and step for texY
+        // Start and step for tex_y
 
-        float step = 1.0f * texture.getHeight() / lineHeight;
-        float texPos = (drawStart - windowHeight / 2 + lineHeight / 2) * step;
+        float step = 1.0f * texture->getHeight() / line_height;
+        float tex_pos = (draw_start - window_height / 2 + line_height / 2) * step;
 
         // Render a vertical line
 
-        for (int32_t y = drawStart; y < drawEnd; y++) {
-            int32_t texY = (int32_t)texPos & (texture.getHeight() - 1);
-            texPos += step;
+        for (int32_t y = draw_start; y < draw_end; y++) {
+            int32_t tex_y = (int32_t)tex_pos & (texture->getHeight() - 1);
+            tex_pos += step;
 
-            int32_t color = texture.getPixelColor(texX, texY);
-            if (side == 1) color = (color >> 1) & 8355711;
+            int32_t color = texture->getPixelColor(tex_x, tex_y);
+            if (side)
+                color = (color >> 1) & 8355711;
 
             glColor3ubv((GLubyte*)&color);
             glVertex2i(x, y);
@@ -209,52 +217,52 @@ void Game::renderWalls(void) {
 void Game::renderFloorAndCeiling(void) {
     // Floor and ceiling textures
 
-    Image& floorTexture = textures['F'];
-    Image& ceilingTexture = textures['C'];
+    Image& floor_texture = textures['F'];
+    Image& ceiling_texture = textures['C'];
 
-    for (int32_t y = windowHeight / 2; y < windowHeight; y++) {
+    for (int32_t y = window_height / 2; y < window_height; y++) {
         // Ray direction for the floor
 
-        float rayDirX0 = player.dirX - player.planeX;
-        float rayDirY0 = player.dirY - player.planeY;
-        float rayDirX1 = player.dirX + player.planeX;
-        float rayDirY1 = player.dirY + player.planeY;
+        float ray_dir_x0 = player->dir_x - player->plane_x;
+        float ray_dir_y0 = player->dir_y - player->plane_y;
+        float ray_dir_x1 = player->dir_x + player->plane_x;
+        float ray_dir_y1 = player->dir_y + player->plane_y;
 
         // Horizontal distance from the camera to the floor for the current row
 
-        float rowDistance = 0.5f * windowHeight / (y - windowHeight / 2);
+        float row_distance = 0.5f * window_height / (y - window_height / 2);
 
         // Starting position of the floor
 
-        float floorX = player.posX + rowDistance * rayDirX0;
-        float floorY = player.posY + rowDistance * rayDirY0;
+        float floor_x = player->pos_x + row_distance * ray_dir_x0;
+        float floor_y = player->pos_y + row_distance * ray_dir_y0;
 
         // How much to step from one pixel to the next
 
-        float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / windowWidth;
-        float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / windowWidth;
+        float floor_step_x = row_distance * (ray_dir_x1 - ray_dir_x0) / window_width;
+        float floor_step_y = row_distance * (ray_dir_y1 - ray_dir_y0) / window_width;
 
-        for (int32_t x = 0; x < windowWidth; x++) {
-            int32_t cellX = (int32_t)(floorX);
-            int32_t cellY = (int32_t)(floorY);
+        for (int32_t x = 0; x < window_width; x++) {
+            int32_t cell_x = (int32_t)(floor_x);
+            int32_t cell_y = (int32_t)(floor_y);
 
-            int32_t texX = (int32_t)(floorTexture.getWidth() * (floorX - cellX)) & (floorTexture.getWidth() - 1);
-            int32_t texY = (int32_t)(floorTexture.getHeight() * (floorY - cellY)) & (floorTexture.getHeight() - 1);
+            int32_t tex_x = (int32_t)(floor_texture.getWidth() * (floor_x - cell_x)) & (floor_texture.getWidth() - 1);
+            int32_t tex_y = (int32_t)(floor_texture.getHeight() * (floor_y - cell_y)) & (floor_texture.getHeight() - 1);
 
-            floorX += floorStepX;
-            floorY += floorStepY;
+            floor_x += floor_step_x;
+            floor_y += floor_step_y;
 
             // Render floor and ceiling
 
-            int32_t color = floorTexture.getPixelColor(texX, texY);
+            int32_t color = floor_texture.getPixelColor(tex_x, tex_y);
             color = (color >> 1) & 8355711;
             glColor3ubv((GLubyte*)&color);
             glVertex2i(x, y);
 
-            color = ceilingTexture.getPixelColor(texX, texY);
+            color = ceiling_texture.getPixelColor(tex_x, tex_y);
             color = (color >> 1) & 8355711;
             glColor3ubv((GLubyte*)&color);
-            glVertex2i(x, windowHeight - y - 1);
+            glVertex2i(x, window_height - y - 1);
         }
     }
 }
@@ -263,75 +271,77 @@ void Game::renderSprites(void) {
     // TODO: refactor sprite sorting
 
     for (size_t i = 0; i < sprites.size(); i++) {
-        spriteOrder[i] = i;
-        spriteDistance[i] = ((player.posX - sprites[i].posX) * (player.posX - sprites[i].posX) + (player.posY - sprites[i].posY) * (player.posY - sprites[i].posY));
+        sprite_order[i] = i;
+        sprite_distance[i] = ((player->pos_x - sprites[i].pos_x) * (player->pos_x - sprites[i].pos_x) + (player->pos_y - sprites[i].pos_y) * (player->pos_y - sprites[i].pos_y));
     }
 
     std::vector<std::pair<double, int>> tmpSprites(sprites.size());
     for (size_t i = 0; i < sprites.size(); i++) {
-        tmpSprites[i].first = spriteDistance[i];
-        tmpSprites[i].second = spriteOrder[i];
+        tmpSprites[i].first = sprite_distance[i];
+        tmpSprites[i].second = sprite_order[i];
     }
     std::sort(tmpSprites.begin(), tmpSprites.end());
     for (size_t i = 0; i < sprites.size(); i++) {
-        spriteDistance[i] = tmpSprites[3 - i - 1].first;
-        spriteOrder[i] = tmpSprites[3 - i - 1].second;
+        sprite_distance[i] = tmpSprites[3 - i - 1].first;
+        sprite_order[i] = tmpSprites[3 - i - 1].second;
     }
 
     for (size_t i = 0; i < sprites.size(); i++) {
         // Translate sprite position relative to camera
 
-        float spriteX = sprites[spriteOrder[i]].posX - player.posX;
-        float spriteY = sprites[spriteOrder[i]].posY - player.posY;
+        float sprite_x = sprites[sprite_order[i]].pos_x - player->pos_x;
+        float sprite_y = sprites[sprite_order[i]].pos_y - player->pos_y;
 
         // Inverse camera matrix
 
-        float invDet = 1.0f / (player.planeX * player.dirY - player.dirX * player.planeY);
+        float inv_det = 1.0f / (player->plane_x * player->dir_y - player->dir_x * player->plane_y);
 
         // Transform sprite with the inverse camera matrix
 
-        float transformX = invDet * (player.dirY * spriteX - player.dirX * spriteY);
-        float transformY = invDet * (-player.planeY * spriteX + player.planeX * spriteY);
+        float transform_x = inv_det * (player->dir_y * sprite_x - player->dir_x * sprite_y);
+        float transform_y = inv_det * (-player->plane_y * sprite_x + player->plane_x * sprite_y);
 
         // Sprite screen position
 
-        int32_t spriteScreenX = int32_t((windowWidth / 2) * (1 + transformX / transformY));
+        int32_t sprite_screen_x = int32_t((window_width / 2) * (1 + transform_x / transform_y));
 
-        int32_t spriteHeight = abs(int32_t(windowHeight / transformY));
-        int32_t spriteWidth = abs(int32_t(windowHeight / (transformY)));
+        int32_t sprite_height = abs(int32_t(window_height / transform_y));
+        int32_t sprite_width = abs(int32_t(window_height / (transform_y)));
 
-        // Draw information based on sprite height and width
+        // Information based on sprite height and width
 
-        int32_t drawStartY = -spriteHeight / 2 + windowHeight / 2;
-        if (drawStartY < 0)
-            drawStartY = 0;
+        int32_t draw_start_y = -sprite_height / 2 + window_height / 2;
+        if (draw_start_y < 0)
+            draw_start_y = 0;
 
-        int32_t drawEndY = drawStartY + spriteHeight;
-        if (drawEndY > windowHeight)
-            drawEndY = windowHeight;
+        int32_t draw_end_y = draw_start_y + sprite_height;
+        if (draw_end_y > window_height)
+            draw_end_y = window_height;
 
-        int32_t drawStartX = -spriteWidth / 2 + spriteScreenX;
-        if (drawStartX < 0)
-            drawStartX = 0;
+        int32_t draw_start_x = -sprite_width / 2 + sprite_screen_x;
+        if (draw_start_x < 0)
+            draw_start_x = 0;
 
-        int32_t drawEndX = spriteWidth / 2 + spriteScreenX;
-        if (drawEndX > windowWidth)
-            drawEndX = windowWidth;
+        int32_t draw_end_x = sprite_width / 2 + sprite_screen_x;
+        if (draw_end_x > window_width)
+            draw_end_x = window_width;
 
-        for (int32_t stripe = drawStartX; stripe < drawEndX; stripe++) {
-            int32_t texX = int32_t(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * sprites[spriteOrder[i]].texture.getWidth() / spriteWidth) / 256;
+        // Iterate through every vertical stripe of the sprite
 
-            // If the sprite is out of bounds, skip it
-            if (transformY <= 0 || stripe <= 0 || stripe >= windowWidth || transformY >= distBuffer[stripe])
+        for (int32_t stripe = draw_start_x; stripe < draw_end_x; stripe++) {
+            int32_t tex_x = int32_t(256 * (stripe - (-sprite_width / 2 + sprite_screen_x)) * sprites[sprite_order[i]].getWidth() / sprite_width) / 256;
+
+            // If the stripe is out of bounds, skip it
+            if (transform_y <= 0 || stripe <= 0 || stripe >= window_width || transform_y >= dist_buffer[stripe])
                 continue;
 
-            // Render the sprite vertical stripe
+            // Render the stripe
 
-            for (int32_t y = drawStartY; y < drawEndY; y++) {
-                int32_t d = (y)*256 - windowHeight * 128 + spriteHeight * 128;
-                int32_t texY = ((d * sprites[spriteOrder[i]].texture.getHeight()) / spriteHeight) / 256;
+            for (int32_t y = draw_start_y; y < draw_end_y; y++) {
+                int32_t d = (y) * 256 - window_height * 128 + sprite_height * 128;
+                int32_t tex_y = ((d * sprites[sprite_order[i]].getHeight()) / sprite_height) / 256;
 
-                int32_t color = sprites[spriteOrder[i]].texture.getPixelColor(texX, texY);
+                int32_t color = sprites[sprite_order[i]].getPixelColor(tex_x, tex_y);
                 if (color & 0x00FFFFFF) {
                     glColor3ubv((GLubyte*)&color);
                     glVertex2i(stripe, y);
@@ -339,33 +349,6 @@ void Game::renderSprites(void) {
             }
         }
     }
-}
-
-void Game::paused(void) {
-    glfwPollEvents();
-}
-
-void Game::update(void) {
-    double oldTime = time;
-    time = glfwGetTime();
-    deltaTime = time - oldTime;
-
-    glfwPollEvents();
-
-    double cursorPosX, cursorPosY;
-
-    glfwGetCursorPos(window, &cursorPosX, &cursorPosY);
-    glfwSetCursorPos(window, windowWidth / 2.0, windowHeight / 2.0);
-
-    (void)cursorPosY;
-
-    // Cursor distance from the middle of window
-
-    player.cursorDir = windowWidth / 2.0f - cursorPosX;
-
-    player.update();
-
-    render();
 }
 
 void Game::render(void) {
@@ -386,6 +369,53 @@ void Game::loop(void) {
     while (!glfwWindowShouldClose(window)) {
         (this->*gameState)();
     }
+}
+
+void Game::paused(void) {
+    glfwPollEvents();
+}
+
+void Game::update(void) {
+    double old_time = time;
+
+    time = glfwGetTime();
+    delta_time = time - old_time;
+
+    glfwPollEvents();
+
+    double cursor_pos_x, cursor_pos_y;
+
+    glfwGetCursorPos(window, &cursor_pos_x, &cursor_pos_y);
+    glfwSetCursorPos(window, window_width / 2.0, window_height / 2.0);
+
+    (void)cursor_pos_y;
+
+    // Cursor distance from the middle of window
+
+    player->cursor_dir = window_width / 2.0f - cursor_pos_x;
+
+    float move_step = delta_time * player->move_speed * player->walk_dir;
+    float side_step = delta_time * player->move_speed * player->side_dir;
+
+    float next_x = player->pos_x + (player->dir_x * move_step) + (player->dir_y * side_step);
+    float next_y = player->pos_y + (player->dir_y * move_step) - (player->dir_x * side_step);
+
+    if (map->grid[(size_t)player->pos_y][(size_t)next_x] == '0')
+        player->pos_x = next_x;
+    if (map->grid[(size_t)next_y][(size_t)player->pos_x] == '0')
+        player->pos_y = next_y;
+
+    float rot_step = delta_time * (player->rot_speed * player->rot_dir) + (player->cursor_speed * player->cursor_dir);
+
+    float old_dir_x = player->dir_x;
+    player->dir_x = player->dir_x * cos(rot_step) - player->dir_y * sin(rot_step);
+    player->dir_y = old_dir_x * sin(rot_step) + player->dir_y * cos(rot_step);
+
+    float old_plane_x = player->plane_x;
+    player->plane_x = player->plane_x * cos(rot_step) - player->plane_y * sin(rot_step);
+    player->plane_y = old_plane_x * sin(rot_step) + player->plane_y * cos(rot_step);
+
+    render();
 }
 
 const char* Game::CouldntOpenMap::what() const throw() {

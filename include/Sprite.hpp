@@ -3,19 +3,16 @@
 
 #include "Image.hpp"
 
-class Sprite {
+class Sprite : public Image {
    public:
-    float posX, posY;
-    Image texture;
+    float pos_x, pos_y;
 
     Sprite(void);
-    Sprite(float posX, float posY, const std::string& filename);
+    Sprite(const std::string& filename, float pos_x, float pos_y);
     Sprite(const Sprite& other);
     ~Sprite();
 
     Sprite& operator=(const Sprite& other);
-
-    void load(float posX, float posY, const std::string& filename);
 };
 
 #endif /* SPRITE_HPP */

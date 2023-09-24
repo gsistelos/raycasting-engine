@@ -15,7 +15,7 @@ int32_t main(int32_t argc, char** argv) {
             game.init(argv[1]);
         else
             game.init("maps/map1.txt");
-    } catch (std::exception& e) {
+    } catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
         return 1;
     }

@@ -11,6 +11,9 @@ add_subdirectory(glfw)
 # stb_image
 file(DOWNLOAD https://raw.githubusercontent.com/nothings/stb/master/stb_image.h ${CMAKE_SOURCE_DIR}/include/stb_image.h)
 
+set(CMAKE_CXX_COMPILER g++)
+add_compile_options(-Wall -Werror -Wextra -O3)
+
 include_directories(include)
 
 add_executable(

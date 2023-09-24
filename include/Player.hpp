@@ -7,26 +7,22 @@
 
 class Player {
    public:
-    float posX, posY;
-    float dirX, dirY;
-    float planeX, planeY;
-    float moveSpeed;
-    float rotSpeed;
-    float cursorSpeed;
+    float pos_x, pos_y;
+    float dir_x, dir_y;
+    float plane_x, plane_y;
 
-    int32_t walkDir;
-    int32_t sideDir;
-    float rotDir;
-    float cursorDir;
+    float move_speed;
+    float rot_speed;
+    float cursor_speed;
 
-    double& deltaTime;
-    Map& map;
+    int32_t walk_dir;
+    int32_t side_dir;
 
-    Player(double& deltaTime, Map& map);
+    float rot_dir;
+    float cursor_dir;
+
+    Player(Map& map);
     ~Player();
-
-    void load(void);
-    void update(void);
 
     class NoPlayerFound : public std::exception {
        public:
