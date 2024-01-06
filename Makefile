@@ -1,26 +1,42 @@
-TARGET := raycast.exe
+ifeq ($(OS),Windows_NT)
+	TARGET = raycast.exe
+else
+	TARGET = raycast
+endif
 
-SRC := $(addprefix src/,	Game.cpp Image.cpp keyCallback.cpp main.cpp Map.cpp \
-							Player.cpp Sprite.cpp \
-							)
+SRC = $(addprefix src/,	Game.cpp Image.cpp keyCallback.cpp main.cpp Map.cpp \
+						Player.cpp Sprite.cpp \
+						)
 
-OBJ := $(SRC:.cpp=.o)
+OBJ = $(SRC:.cpp=.o)
 
-GLFW_DIR := glfw
+GLFW_DIR = glfw
 
-GLFW_FLAGS := -DCMAKE_TOOLCHAIN_FILE=CMake/x86_64-w64-mingw32.cmake
+ifeq ($(OS),Windows_NT)
+	GLFW_FLAGS = -DCMAKE_TOOLCHAIN_FILE=CMake/x86_64-w64-mingw32.cmake
+endif
 
-GLFW := glfw/build/src/libglfw3.a
+GLFW = glfw/build/src/libglfw3.a
 
-STB_IMAGE := include/stb_image.h
+STB_IMAGE = include/stb_image.h
 
-CXX := x86_64-w64-mingw32-g++ -O3
+ifeq ($(OS),Windows_NT)
+	CXX = x86_64-w64-mingw32-g++ -O3
+else
+	CXX = g++ -O3
+endif
 
-CXXFLAGS := -Wall -Werror -Wextra -Iinclude -I$(GLFW_DIR)/include
+CXXFLAGS = -Wall -Werror -Wextra -Iinclude -I$(GLFW_DIR)/include
 
-FLAGS := -lgdi32 -lopengl32 -static-libgcc -static-libstdc++
+ifeq ($(OS),Windows_NT)
+	FLAGS = -lgdi32 -lopengl32 -static-libgcc -static-libstdc++
+else ifeq ($(shell uname),Linux)
+	FLAGS = -lGL
+else
+	FLAGS = -framework Cocoa -framework OpenGL -framework IOKit
+endif
 
-RM := rm -rf
+RM = rm -rf
 
 all: $(TARGET)
 
@@ -38,8 +54,11 @@ $(STB_IMAGE):
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 clean:
+	$(RM) $(OBJ) $(GLFW_DIR)/build $(STB_IMAGE)
+
+fclean:
 	$(RM) $(OBJ) $(TARGET) $(GLFW_DIR)/build $(STB_IMAGE)
 
-re: clean all
+re: fclean all
 
-.PHONY: all clean re
+.PHONY: all clean fclean re
