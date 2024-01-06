@@ -32,7 +32,7 @@ If you are on WSL, export `OS=Windows_NT` to your environment variables.
 
 Run `make`.
 
-### MacOS
+### MacOS:
 
 As I don't have a Mac, I've followed the instructions to compile glfw, but I'm not sure if it's working.
 
