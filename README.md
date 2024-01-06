@@ -20,23 +20,23 @@ Clone repository recursively:
 git clone --recursive git@github.com:gsistelos/raycast.git
 ```
 
-### Linux and macOS:
+### Dependencies
 
-See GLFW dependencies: https://www.glfw.org/docs/latest/compile.html#compile_deps
+`make`, `cmake`, `libopengl-dev` and `mingw64` only for Windows.
 
-```sh
-cmake -B build
-cmake --build build
-```
+Also, see [GLFW dependencies](https://www.glfw.org/docs/latest/compile.html#compile_deps)
 
-### Windows:
+### Linux and Windows:
 
-Dependencies: [mingw64](https://www.mingw-w64.org/), [GLFW](https://www.glfw.org/docs/latest/compile.html#compile_deps)
+If you are on WSL, export `OS=Windows_NT` to your environment variables.
 
-You can compile on WSL or with mingw64 on Windows:
-```sh
-make
-```
+Run `make`.
+
+### MacOS
+
+As I don't have a Mac, I've followed the instructions to compile glfw, but I'm not sure if it's working.
+
+Try `make`.
 
 ## Usage
 
