@@ -4,9 +4,10 @@ else
 	TARGET = raycast
 endif
 
-SRC = $(addprefix src/,	Game.cpp Image.cpp keyCallback.cpp main.cpp Map.cpp \
-						Player.cpp Sprite.cpp \
-						)
+SRC = $(addprefix src/, \
+	Game.cpp Image.cpp keyCallback.cpp main.cpp Map.cpp \
+	Player.cpp Sprite.cpp Window.cpp \
+)
 
 OBJ = $(SRC:.cpp=.o)
 
@@ -54,10 +55,10 @@ $(STB_IMAGE):
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 clean:
-	$(RM) $(OBJ) $(GLFW_DIR)/build $(STB_IMAGE)
+	$(RM) $(OBJ)
 
 fclean:
-	$(RM) $(OBJ) $(TARGET) $(GLFW_DIR)/build $(STB_IMAGE)
+	$(RM) $(OBJ) $(TARGET)
 
 re: fclean all
 

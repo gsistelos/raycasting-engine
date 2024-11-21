@@ -4,7 +4,7 @@
 #include "Image.hpp"
 
 class Sprite : public Image {
-   public:
+  public:
     float pos_x, pos_y;
 
     Sprite(void);

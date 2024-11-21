@@ -6,7 +6,7 @@
 #include <string>
 
 class Image {
-   public:
+  public:
     Image(void);
     Image(const std::string& filename);
     Image(const Image& other);
@@ -22,11 +22,11 @@ class Image {
     void load(const std::string& filename);
 
     class FailedToLoadImage : public std::exception {
-       public:
+      public:
         const char* what() const throw();
     };
 
-   private:
+  private:
     int32_t _width;
     int32_t _height;
     int32_t _channels;

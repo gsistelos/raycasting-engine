@@ -5,7 +5,7 @@
 #include <vector>
 
 class Map {
-   public:
+  public:
     std::vector<std::vector<char>> grid;
 
     Map(const std::string& filename);
@@ -14,16 +14,16 @@ class Map {
     void validate(void);
 
     class FailedToOpenTheMap : public std::exception {
-       public:
+      public:
         const char* what() const throw();
     };
 
     class InvalidMapGrid : public std::exception {
-       public:
+      public:
         const char* what() const throw();
     };
 
-   private:
+  private:
     void validateOnlyZeroLine(size_t y);
 };
 

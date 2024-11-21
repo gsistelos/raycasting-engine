@@ -6,7 +6,7 @@
 #include "Map.hpp"
 
 class Player {
-   public:
+  public:
     float pos_x, pos_y;
     float dir_x, dir_y;
     float plane_x, plane_y;
@@ -25,12 +25,12 @@ class Player {
     ~Player();
 
     class NoPlayerFound : public std::exception {
-       public:
+      public:
         const char* what() const throw();
     };
 
     class MoreThanOnePlayerFound : public std::exception {
-       public:
+      public:
         const char* what() const throw();
     };
 };

@@ -10,11 +10,11 @@
 #include "Map.hpp"
 #include "Player.hpp"
 #include "Sprite.hpp"
+#include "Window.hpp"
 
 class Game {
-   public:
-    GLFWwindow* window;
-    int32_t window_width, window_height;
+  public:
+    Window window;
 
     double time;
     double delta_time;
@@ -47,17 +47,17 @@ class Game {
     void update(void);
 
     class CouldntOpenMap : public std::exception {
-       public:
+      public:
         const char* what() const throw();
     };
 
     class InvalidContent : public std::exception {
-       public:
+      public:
         const char* what() const throw();
     };
 
     class FailedToInitGame : public std::exception {
-       public:
+      public:
         const char* what() const throw();
     };
 };
