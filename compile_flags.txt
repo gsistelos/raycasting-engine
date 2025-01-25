@@ -2,4 +2,5 @@
 -Werror
 -Wextra
 -Iinclude
--Iglfw/include
+-Ilib
+-Ilib/glfw/include
