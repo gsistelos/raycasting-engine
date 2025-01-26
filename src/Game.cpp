@@ -40,7 +40,7 @@ void Game::loadTexturesAndSprites(const std::string& filename) {
             throw Game::InvalidContent();
 
         if (!isspace(line[0]) && line[1] == ' ') {
-            textures[line[0]] = Image(line.substr(2));
+            textures[line[0]] = Image(line.substr(2).c_str());
         } else {
             // Handle errors for each sprite coordinate
 
@@ -60,7 +60,7 @@ void Game::loadTexturesAndSprites(const std::string& filename) {
                 line.erase(0, end + 1);
             }
 
-            sprites.push_back(Sprite(line.substr(), pos[0], pos[1]));
+            sprites.push_back(Sprite(line.substr().c_str(), pos[0], pos[1]));
         }
     }
 
@@ -337,8 +337,7 @@ void Game::renderSprites(void) {
             // Render the stripe
 
             for (int32_t y = draw_start_y; y < draw_end_y; y++) {
-                int32_t d =
-                    (y) * 256 - window.height * 128 + sprite_height * 128;
+                int32_t d = (y)*256 - window.height * 128 + sprite_height * 128;
                 int32_t tex_y = ((d * sprites[sprite_order[i]].getHeight()) /
                                  sprite_height) /
                                 256;

@@ -8,7 +8,7 @@ class Sprite : public Image {
     float pos_x, pos_y;
 
     Sprite(void);
-    Sprite(const std::string& filename, float pos_x, float pos_y);
+    Sprite(const char* filename, float pos_x, float pos_y);
     Sprite(const Sprite& other);
     ~Sprite();
 
